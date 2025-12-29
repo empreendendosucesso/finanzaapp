@@ -14,6 +14,18 @@
             color: #1e293b;
             -webkit-font-smoothing: antialiased;
         }
+        #root:empty::before {
+            content: "Carregando Finanza AI...";
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-weight: 800;
+            color: #6366f1;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
         .animate-in {
             animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
@@ -21,8 +33,6 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 <script type="importmap">
 {
@@ -42,8 +52,7 @@
 </head>
 <body>
     <div id="root"></div>
-    <!-- Removido a barra inicial para funcionar em subpastas do GitHub Pages -->
-    <script type="module" src="./index.tsx"></script>
-<script type="module" src="/index.tsx"></script>
+    <!-- O Vite transformará este caminho automaticamente durante o build -->
+    <script type="module" src="/index.tsx"></script>
 </body>
 </html>
