@@ -1,0 +1,35 @@
+
+{
+    "content": [
+        {
+            "id": "finanza_ai_section",
+            "elType": "section",
+            "settings": {
+                "layout": "full_width"
+            },
+            "elements": [
+                {
+                    "id": "finanza_ai_column",
+                    "elType": "column",
+                    "settings": {
+                        "_column_size": 100
+                    },
+                    "elements": [
+                        {
+                            "id": "finanza_ai_html_widget",
+                            "elType": "widget",
+                            "settings": {
+                                "html": "<div id=\"finanza-wp-root\"></div>\n\n<script type=\"importmap\">\n{\n  \"imports\": {\n    \"react\": \"https://esm.sh/react@19.0.0\",\n    \"react-dom/client\": \"https://esm.sh/react-dom@19.0.0/client\",\n    \"lucide-react\": \"https://esm.sh/lucide-react@0.460.0\",\n    \"recharts\": \"https://esm.sh/recharts@2.13.3\",\n    \"@google/genai\": \"https://esm.sh/@google/genai@1.3.0\"\n  }\n}\n</script>\n\n<script type=\"module\">\nimport React, { useState, useEffect, useMemo } from 'react';\nimport { createRoot } from 'react-dom/client';\nimport { Wallet, Sparkles, ChevronLeft, ChevronRight, BrainCircuit, Trash2, Settings, X, TrendingUp } from 'lucide-react';\nimport { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';\nimport { GoogleGenAI } from \"@google/genai\";\n\nconst App = () => {\n  const [transactions, setTransactions] = useState(() => JSON.parse(localStorage.getItem('finanza_v3_data') || '[]'));\n  const [apiKey, setApiKey] = useState(localStorage.getItem('gemini_api_key') || '');\n  const [showSettings, setShowSettings] = useState(false);\n  const [month, setMonth] = useState(new Date().getMonth());\n  const [insights, setInsights] = useState(null);\n  const [loading, setLoading] = useState(false);\n\n  const filtered = useMemo(() => transactions.filter(t => new Date(t.date).getMonth() === month), [transactions, month]);\n  const totals = useMemo(() => filtered.reduce((acc, t) => { \n    if (t.type === 'INCOME') acc.inc += t.amount; else acc.exp += t.amount; return acc; \n  }, { inc: 0, exp: 0 }), [filtered]);\n\n  useEffect(() => localStorage.setItem('finanza_v3_data', JSON.stringify(transactions)), [transactions]);\n  useEffect(() => localStorage.setItem('gemini_api_key', apiKey), [apiKey]);\n\n  const handleAI = async () => {\n    if (!apiKey) { setShowSettings(true); return; }\n    setLoading(true);\n    try {\n      const ai = new GoogleGenAI({ apiKey });\n      const prompt = `Analise: R$ ${totals.inc} ganhos e R$ ${totals.exp} gastos. Dê 3 dicas curtas.`;\n      const res = await ai.models.generateContent({ model: 'gemini-3-flash-preview', contents: prompt });\n      setInsights(res.text);\n    } catch (e) { alert('Erro na chave de API'); }\n    setLoading(false);\n  };\n\n  return (\n    <div style={{ fontFamily: 'Inter, sans-serif', backgroundColor: '#f8fafc', padding: '20px', borderRadius: '24px', minHeight: '600px', color: '#1e293b' }}>\n      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>\n        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>\n          <div style={{ background: '#4f46e5', padding: '8px', borderRadius: '10px', color: 'white' }}><Wallet size={20}/></div>\n          <h2 style={{ fontWeight: 900, margin: 0 }}>Finanza AI</h2>\n        </div>\n        <button onClick={() => setShowSettings(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}><Settings/></button>\n      </div>\n\n      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '20px' }}>\n        <div style={{ background: '#ecfdf5', padding: '20px', borderRadius: '20px', border: '1px solid #d1fae5' }}>\n          <span style={{ fontSize: '10px', fontWeight: 900, color: '#059669' }}>ENTRADAS</span>\n          <div style={{ fontSize: '20px', fontWeight: 900 }}>R$ {totals.inc.toFixed(2)}</div>\n        </div>\n        <div style={{ background: '#fff1f2', padding: '20px', borderRadius: '20px', border: '1px solid #ffe4e6' }}>\n          <span style={{ fontSize: '10px', fontWeight: 900, color: '#e11d48' }}>SAÍDAS</span>\n          <div style={{ fontSize: '20px', fontWeight: 900 }}>R$ {totals.exp.toFixed(2)}</div>\n        </div>\n      </div>\n\n      <div style={{ background: '#1e1b4b', color: 'white', padding: '20px', borderRadius: '24px', marginBottom: '20px' }}>\n        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}><BrainCircuit size={18}/><span style={{ fontSize: '12px', fontWeight: 800 }}>DICAS DA IA</span></div>\n        {insights ? <p style={{ fontSize: '12px', opacity: 0.9 }}>{insights}</p> : <p style={{ fontSize: '12px', opacity: 0.6 }}>Clique no botão para analisar este mês.</p>}\n        <button onClick={handleAI} disabled={loading} style={{ width: '100%', padding: '12px', background: '#4f46e5', border: 'none', color: 'white', borderRadius: '12px', fontWeight: 800, cursor: 'pointer' }}>\n          {loading ? 'Carregando...' : 'GERAR INSIGHTS'}\n        </button>\n      </div>\n\n      {showSettings && (\n        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>\n          <div style={{ background: 'white', padding: '30px', borderRadius: '30px', width: '90%', maxWidth: '350px' }}>\n            <h3 style={{ marginTop: 0 }}>Configurar API</h3>\n            <input type=\"password\" value={apiKey} onChange={e => setApiKey(e.target.value)} placeholder=\"Sua Gemini API Key\" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #ddd', marginBottom: '15px' }} />\n            <button onClick={() => setShowSettings(false)} style={{ width: '100%', padding: '12px', background: '#1e293b', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 800 }}>SALVAR</button>\n          </div>\n        </div>\n      )}\n    </div>\n  );\n};\n\ncreateRoot(document.getElementById('finanza-wp-root')).render(<App />);\n</script>\n",
+                                "widget_type": "html"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "page_settings": [],
+    "version": "0.4",
+    "title": "Finanza AI Dashboard",
+    "type": "section"
+}
