@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 import { 
@@ -6,7 +5,7 @@ import {
     ArrowUpRight, ArrowDownRight, Database, PieChart as PieChartIcon
 } from 'lucide-react';
 import { 
-    PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend 
+    PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip 
 } from 'recharts';
 import { GoogleGenAI } from "@google/genai";
 
@@ -63,9 +62,15 @@ const App = () => {
     };
 
     const handleAI = async () => {
+        const apiKey = process.env.API_KEY;
+        if (!apiKey) {
+            alert('A chave da API não foi configurada nos Secrets do GitHub.');
+            return;
+        }
+
         setLoadingAI(true);
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+            const ai = new GoogleGenAI({ apiKey });
             const prompt = `Analise minhas finanças de ${currentMonth+1}/${currentYear}: Ganhos R$${totals.inc}, Gastos R$${totals.exp}. Liste 3 conselhos rápidos com emojis. Seja breve.`;
             
             const response = await ai.models.generateContent({ 
@@ -73,10 +78,10 @@ const App = () => {
                 contents: prompt 
             });
             
-            setInsights(response.text || null);
+            setInsights(response.text || "Não foi possível gerar insights no momento.");
         } catch (e) { 
             console.error('Gemini API Error:', e);
-            alert('Erro ao gerar insights. Tente novamente em instantes.');
+            alert('Erro ao gerar insights. Verifique a chave da API.');
         }
         setLoadingAI(false);
     };
@@ -101,7 +106,6 @@ const App = () => {
 
             <main className="max-w-6xl mx-auto px-6 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <div className="lg:col-span-8 space-y-6">
-                    {/* Cards de Totais */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
                             <div className="flex items-center gap-2 text-emerald-600 mb-2"><ArrowUpRight size={14}/><span className="text-[10px] font-black uppercase tracking-widest">Entradas</span></div>
@@ -118,7 +122,6 @@ const App = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Gráfico de Despesas */}
                         <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
                             <div className="flex items-center gap-2 mb-6">
                                 <PieChartIcon size={16} className="text-slate-400" />
@@ -156,7 +159,6 @@ const App = () => {
                             </div>
                         </div>
 
-                        {/* Box IA */}
                         <div className="bg-gradient-to-br from-indigo-700 to-indigo-900 p-8 rounded-[2rem] text-white relative overflow-hidden group flex flex-col justify-between">
                             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:rotate-12 transition-transform duration-700"><BrainCircuit size={100}/></div>
                             <div className="relative z-10">
@@ -176,7 +178,6 @@ const App = () => {
                         </div>
                     </div>
 
-                    {/* Lista de Transações */}
                     <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
                         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                             <span className="font-black text-[10px] uppercase text-slate-400 tracking-widest">Extrato Detalhado</span>
