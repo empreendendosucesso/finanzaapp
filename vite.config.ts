@@ -4,9 +4,10 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  // 'base' como './' garante que o app funcione em subpastas do GitHub Pages
+  // Define o caminho base como relativo para suportar qualquer subpasta no GitHub Pages
   base: './',
   define: {
+    // A chave é injetada automaticamente pelo ambiente de execução
     'process.env.API_KEY': JSON.stringify(process.env.API_KEY || '')
   },
   server: {
@@ -15,6 +16,14 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    sourcemap: false
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'recharts', 'lucide-react'],
+          genai: ['@google/genai']
+        }
+      }
+    }
   }
 });
