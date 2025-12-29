@@ -1,43 +1,74 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Your Name <you@example.com>
+Date: Mon, 29 Dec 2025 00:00:00 +0000
+Subject: [PATCH] ci: build and deploy Vite site to GitHub Pages
 
-on:
-  # Runs on pushes targeting the default branch
-  push:
-    branches: ["main"]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
-jobs:
-  # Single deploy job since we're just deploying
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          # Upload entire repository
-          path: '.'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+---
+ .github/workflows/static.yml | 86 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 86 insertions(+)
+ create mode 100644 .github/workflows/static.yml
++
+diff --git a/.github/workflows/static.yml b/.github/workflows/static.yml
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/.github/workflows/static.yml
+@@ -0,0 +1,86 @@
++# Deploy static Vite site to GitHub Pages
++name: Deploy static content to Pages
++
++on:
++  push:
++    branches: ["main"]
++  workflow_dispatch:
++
++permissions:
++  contents: read
++  pages: write
++  id-token: write
++
++concurrency:
++  group: "pages"
++  cancel-in-progress: false
++
++jobs:
++  build-and-deploy:
++    environment:
++      name: github-pages
++      url: ${{ steps.deployment.outputs.page_url }}
++    runs-on: ubuntu-latest
++    steps:
++      - name: Checkout
++        uses: actions/checkout@v4
++
++      - name: Use Node.js
++        uses: actions/setup-node@v4
++        with:
++          node-version: '18'
++
++      - name: Install dependencies
++        run: npm ci
++
++      - name: Build
++        run: npm run build
++
++      - name: Ensure 404 fallback for SPA routing
++        run: |
++          if [ -f dist/index.html ]; then
++            cp dist/index.html dist/404.html
++          fi
++
++      - name: Setup Pages
++        uses: actions/configure-pages@v5
++
++      - name: Upload artifact
++        uses: actions/upload-pages-artifact@v3
++        with:
++          path: ./dist
++
++      - name: Deploy to GitHub Pages
++        id: deployment
++        uses: actions/deploy-pages@v4
++
++-- 
++1.0.0
